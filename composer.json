@@ -1,0 +1,17 @@
+{
+    "name": "dannykopping/Larva",
+    "require": {
+        "mysql-workbench-schema-exporter/mysql-workbench-schema-exporter": "dev-master"
+    },
+    "authors": [
+        {
+            "name": "dannykopping",
+            "email": "dannykopping@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "Larva": "lib"
+        }
+    }
+}
