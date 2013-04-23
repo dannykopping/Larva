@@ -27,6 +27,8 @@
 
     namespace Larva\Model;
 
+    use Larva\FKDumper;
+    use MwbExporter\Formatter\FormatterInterface;
     use MwbExporter\Model\Table as BaseTable;
     use MwbExporter\Writer\WriterInterface;
 
@@ -48,36 +50,84 @@
                 $extends   = $config['extends'];
                 $namespace = $config['namespace'];
 
-                $writer->open($this->getTableFileName())->write('<?php');
+//                $writer->open($this->getTableFileName())->write('<?php');
+//
+//                $this->writeHeader($writer, $use, $namespace);
+//                $this->writeClassDocBlock($writer, $info);
 
-                $this->writeHeader($writer, $use, $namespace);
-                $this->writeClassDocBlock($writer, $info);
+//                if (count($this->getColumns())) {
+//                    foreach ($this->getColumns() as $column) {
+//                        $column->write($writer);
+//                    }
+//                }
 
-                $writer->write(sprintf('class %s extends %s', $this->getModelName(), $extends))
-                    ->write('{')
-                    ->indent()
-                    ->write('/**')
-                    ->write(' * Set the table name')
-                    ->write(' * @var string')
-                    ->write(' */')
-                    ->write('protected $table = \'' . $this->getRawTableName() . '\';')
-                    ->write('')
-                    ->writeCallback(function(WriterInterface $writer, Table $table = null) {
-                        if (count($table->getRelations())) {
-                            foreach ($table->getRelations() as $relation) {
-                                $relation->write($writer);
-                            }
-                        }
-                    })
-                    ->outdent()
-                    ->write('}')
-                    ->write('')
-                    ->close();
+                echo "\n\n[{$this->getRawTableName()}]\n";
+                $this->getColumns()->write($writer);
+                print_r($this->getColumns()->getRelations());
+
+//                $writer->write(sprintf('class %s extends %s', $this->getModelName(), $extends))
+//                    ->write('{')
+//                    ->indent()
+//                    ->write('/**')
+//                    ->write(' * Set the table name')
+//                    ->write(' * @var string')
+//                    ->write(' */')
+//                    ->write('protected $table = \'' . $this->getRawTableName() . '\';')
+//                    ->write('')
+//                    ->writeCallback(function(WriterInterface $writer, Table $table = null) {
+//                        if (count($table->getRelations())) {
+////                            foreach ($table->getRelations() as $relation) {
+////                                $relation->write($writer);
+////                            }
+//
+//                            $this->getRelationsDeep($writer);
+//                        }
+//                    })
+//                    ->writeCallback(function(WriterInterface $writer, Table $table = null) {
+//                        if (count($table->getColumns())) {
+////                            foreach ($table->getColumns() as $column) {
+////                                $column->write($writer);
+////                            }
+//
+//                            $table->getColumns()->write($writer);
+//                        }
+//                    })
+//                    ->writeCallback(function(WriterInterface $writer, Table $table = null) {
+//                        $fillable = $this->getFillableColumns();
+//                        $writer->write(sprintf('protected $fillable = array(%s);', implode(', ', $fillable)));
+//                    })
+//                    ->outdent()
+//                    ->write('}')
+//                    ->write('')
+//                    ->close();
 
                 return self::WRITE_OK;
             }
 
             return self::WRITE_EXTERNAL;
+        }
+
+        private function getRelationsDeep(WriterInterface $writer)
+        {
+            $config    = $this->getDocument()->getConfig();
+            $indent = $config[FormatterInterface::CFG_INDENTATION];
+            $indentation = str_repeat('\s', $indent);
+            $namespace = addslashes($config['namespace'].'\\');
+
+//            echo str_repeat('-', 20).$this->getRawTableName().str_repeat('-', 20)."\n";
+            foreach($this->getRelations() as $rel)
+            {
+                $relation = FKDumper::dump($rel);
+//                $writer->write(sprintf('public function %s()', $relation->name));
+//                $writer->write('{');
+//                $writer->indent();
+//                    $writer->write(sprintf('return $this->%s(\'%s\', \'%s\');', $relation->ownership, $namespace.$relation->model, $relation->fk));
+//                $writer->outdent();
+//                $writer->write('}');
+//                $writer->write('');
+            }
+
+//            echo str_repeat('-', 50)."\n\n\n";
         }
 
         private function writeHeader(WriterInterface $writer, $use, $namespace)
@@ -107,5 +157,24 @@
                     }
                 })
                 ->write(' */');
+        }
+
+        private function getFillableColumns()
+        {
+            foreach($this->getColumns() as $column)
+            {
+                if($column->isPrimary())
+                    continue;
+
+                if($column->hasOneToManyRelation())
+                    continue;
+
+                if($column->getColumnName() == 'password')
+                    continue;
+
+                $columns[] = sprintf('"%s"', $column->getColumnName());
+            }
+
+            return $columns;
         }
     }

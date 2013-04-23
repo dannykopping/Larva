@@ -13,6 +13,7 @@
 
         protected function init()
         {
+            $this->setDatatypeConverter(new DatatypeConverter());
             $this->addConfigurations(array(
                 static::CFG_USE => array('Illuminate\Database\Eloquent\Model'),
                 static::CFG_EXTENDS => 'Model',
@@ -24,6 +25,16 @@
         public function createTable(Base $parent, $node)
         {
             return new Model\Table($parent, $node);
+        }
+
+        public function createColumn(Base $parent, $node)
+        {
+            return new Model\Column($parent, $node);
+        }
+
+        public function createColumns(Base $parent, $node)
+        {
+            return new Model\Columns($parent, $node);
         }
 
         public function createForeignKey(Base $parent, $node)

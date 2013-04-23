@@ -8,7 +8,11 @@
     {
         public function write(WriterInterface $writer)
         {
-            $writer->write($this->getLocal()->getParameters()->get('name'));
-//            var_dump($this); die();
+//            $writer->write(">>>>>".$this->getLocal()->getParameters()->get('name'));
+//            $writer->write(">>>>>".$this->getForeign()->getParameters()->get('name'));
+//            $writer->write(">>>>>".$this->getForeign()->getTable()->getRawTableName());
+//            $writer->write(">>>>>".$this->getOwningTable()->getRawTableName());
+//            $writer->write(">>>>>".$this->getLocal()->getTable()->getRawTableName());
         }
+
     }
