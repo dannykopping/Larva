@@ -28,6 +28,7 @@
     namespace Larva\Model;
 
     use Larva\FKDumper;
+    use Larva\Util\RelationUtil;
     use MwbExporter\Formatter\FormatterInterface;
     use MwbExporter\Model\Table as BaseTable;
     use MwbExporter\Writer\WriterInterface;
@@ -61,9 +62,9 @@
 //                    }
 //                }
 
-                echo "\n\n[{$this->getRawTableName()}]\n";
                 $this->getColumns()->write($writer);
-                print_r($this->getColumns()->getRelations());
+                $relations = $this->getColumns()->getRelations();
+                $this->writeRelations($relations);
 
 //                $writer->write(sprintf('class %s extends %s', $this->getModelName(), $extends))
 //                    ->write('{')
@@ -109,14 +110,13 @@
 
         private function getRelationsDeep(WriterInterface $writer)
         {
-            $config    = $this->getDocument()->getConfig();
-            $indent = $config[FormatterInterface::CFG_INDENTATION];
+            $config      = $this->getDocument()->getConfig();
+            $indent      = $config[FormatterInterface::CFG_INDENTATION];
             $indentation = str_repeat('\s', $indent);
-            $namespace = addslashes($config['namespace'].'\\');
+            $namespace   = addslashes($config['namespace'] . '\\');
 
 //            echo str_repeat('-', 20).$this->getRawTableName().str_repeat('-', 20)."\n";
-            foreach($this->getRelations() as $rel)
-            {
+            foreach ($this->getRelations() as $rel) {
                 $relation = FKDumper::dump($rel);
 //                $writer->write(sprintf('public function %s()', $relation->name));
 //                $writer->write('{');
@@ -135,7 +135,7 @@
             $writer->write(sprintf('namespace %s;', $namespace));
             $writer->write('');
 
-            foreach($use as $statement)
+            foreach ($use as $statement)
                 $writer->write(sprintf('use %s;', $statement));
 
             $writer->write('');
@@ -161,20 +161,26 @@
 
         private function getFillableColumns()
         {
-            foreach($this->getColumns() as $column)
-            {
-                if($column->isPrimary())
+            foreach ($this->getColumns() as $column) {
+                if ($column->isPrimary())
                     continue;
 
-                if($column->hasOneToManyRelation())
+                if ($column->hasOneToManyRelation())
                     continue;
 
-                if($column->getColumnName() == 'password')
+                if ($column->getColumnName() == 'password')
                     continue;
 
                 $columns[] = sprintf('"%s"', $column->getColumnName());
             }
 
             return $columns;
+        }
+
+        private function writeRelations($relations)
+        {
+            echo $this->getRawTableName() . "\n";
+            $config = $this->getDocument()->getConfig();
+            RelationUtil::getFormattedRelations($relations, $config);
         }
     }

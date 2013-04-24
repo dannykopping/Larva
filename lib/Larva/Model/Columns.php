@@ -29,10 +29,7 @@
 
         public function setRelationsForTable($tableName, $relations)
         {
-            if(!isset($this->relations[$tableName]))
-                $this->relations[$tableName] = array();
-
-            $this->relations[$tableName] = array_merge($relations, $this->relations[$tableName]);
+            $this->relations = array_merge($relations, $this->relations);
         }
 
         public function getRelations()
